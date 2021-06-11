@@ -6,26 +6,22 @@ import { loginApi } from '../../services/auth'
 import './style.css'
 import { setToken } from '../../utils/auth';
 
-
 export default class Login extends React.Component {
     render() {
         const onFinish = (values) => {
-            // console.log('Received values of form: ', values);
-
-            // setToken(values.name);
-            // this.props.history.push('/admin');
             loginApi({
-                email: values.name,
+                user: values.name,
                 password: values.password
             })
                 .then(res => {
                     let status = res.data.status;
                     let data = res.data.data;
-                    if(status !== "success")
-                    {
+                    if (status !== "success") {
                         message.error(data.errMsg);
                     } else {
                         message.info("登录成功");
+                        message.info("京东链连接成功");
+                        message.info("京东链连接成功");
                         setToken(data);
                         this.props.history.push("/admin");
                     }

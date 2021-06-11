@@ -1,118 +1,106 @@
 import React, { Component } from 'react'
-import { Card, Table } from 'antd'
-import Web3 from 'web3'
+import { Card, message, Table, Tabs } from 'antd'
+import { get, post } from '../../../utils/request';
+const { TabPane } = Tabs;
+function callback(key) {
+    console.log(key);
+}
 export default class Index extends Component {
-    async loadWeb3() {
-        if (window.ethereum) {
-            window.web3 = new Web3(window.ethereum)
-            await window.ethereum.enable()
-        } else if (window.web3) {
-            window.web3 = new Web3(window.web3.currentProvider)
-        }
-        else {
-            window.alert("Please use metamask!")
-        }
+    async componentWillMount() {
+        await this.getTx()
     }
-    getBlocks = async (start, end) => {
+    //从后台获取交易记录
+    async getTx() {
+        get("/admin/transaction").then(res => {
+            console.log(res)
+            let status = res.status
+            if(status === "success"){
+                let transactions = res.data
+                let data1 = []
+                let data2 = []
+                transactions.forEach(element => {
+                    if(element.type === 0) {
+                        data1.push(element)
+                    } else {
+                        data2.push(element)
+                    }
+                });
+                this.setState({
+                    data1: data1,
+                    data2: data2
+                })
+            }
 
+        }).catch(err => {
+            message.error("获取交易失败");
+            console.error(err);
+        })
+    }
+    constructor(props) {
+        super(props);
+        this.state = {
+            data1: null,
+            data2: null
+        };
     }
     render() {
         const columns = [
             {
-                title: "Txn Hash",
+                title: "序号",
+                key: "id",
+                width: 80,
+                align: "center",
+                render: (txt, row, index) => index + 1
+            },
+            {
+                title: "交易地址",
                 dataIndex: "hash",
                 key: "hash",
                 align: "center",
-                render: text => <a>{text}</a>,
+                render: text => {
+                    if (text.length > 18) {
+                        return <a>{text.substr(0, 18) + '...'}</a>
+                    } else {
+                        return <a>{text}</a>
+                    }
+                },
             },
             {
-                title: "Block",
-                dataIndex: "block",
-                key: "block",
+                title: "交易名称",
+                dataIndex: "name",
+                key: "name",
                 align: "center",
             },
             {
-                title: "Age",
-                key: "age",
-                dataIndex: "age",
+                title: "交易详情",
+                key: "url",
+                dataIndex: "url",
                 align: "center",
-            },
-            {
-                title: "From",
-                key: "from",
-                dataIndex: "from",
-                align: "center",
-                render: text => <a>{text}</a>,
-            },
-            {
-                title: "To",
-                key: "to",
-                dataIndex: "to",
-                align: "center",
-                render: text => <a>{text}</a>,
-            },
-            {
-                title: "Value",
-                key: "value",
-                dataIndex: "value",
-                align: "center",
-            },
-            {
-                title: "Txn Fee(Wei)",
-                key: "fee",
-                dataIndex: "fee",
-                align: "center",
+                render: text => {
+                    return (
+                        <div>
+                            <a href={text}>查看</a>
+                        </div>
+                    );
+                }
             }
-
-        ]
-        const data = [
-            {
-                hash: "0xf880c53da04e6a57b1a0e044...",
-                block: 332,
-                age: "30 minutes ago",
-                from: "0x98AFb65649Dc81D2Cc3...",
-                to: "0xc699C0A62306Ae685b...",
-                value: "0",
-                fee: "1000000"
-            },{
-                hash: "0x54F65416d8E31a89Ea37a564...",
-                block: 331,
-                age: "31 minutes ago",
-                from: "0xF9dDf2eDc9c5339bcf01...",
-                to: "0xB5b26Da79bc0f7b228...",
-                value: "0",
-                fee: "2000000"
-            },{
-                hash: "0x7d4073bD4Ed553AED8612C6...",
-                block: 330,
-                age: "31 minutes ago",
-                from: "0x98AFb65649Dc81D2Cc3...",
-                to: "0xc699C0A62306Ae685b...",
-                value: "0",
-                fee: "3000000"
-            },{
-                hash: "0xC7f4582D6C1d3D42528f2337...",
-                block: 329,
-                age: "33 minutes ago",
-                from: "0x98AFb65649Dc81D2Cc3...",
-                to: "0xc699C0A62306Ae685b...",
-                value: "0",
-                fee: "400000"
-            },{
-                hash: "0x71fdB91d53F63d1196825573...",
-                block: 328,
-                age: "33 minutes ago",
-                from: "0x98AFb65649Dc81D2Cc3...",
-                to: "0xc699C0A62306Ae685b...",
-                value: "0",
-                fee: "5000000"
-            },
         ]
 
         return (
-            <Card title="历史交易">
-                <Table rowKey="id" columns={columns} dataSource={data} bordered />
-            </Card>
+            <>
+                <Tabs defaultActiveKey="1" onChange={callback}>
+                    <TabPane tab="京东链" key="1">
+                        <Card title="京东链历史交易">
+                            <Table rowKey="id" columns={columns} dataSource={this.state.data1} bordered />
+                        </Card>
+                    </TabPane>
+                    <TabPane tab="天德链" key="2">
+                        <Card title="天德链历史交易">
+                            <Table rowKey="id" columns={columns} dataSource={this.state.data2} bordered />
+                        </Card>
+                    </TabPane>
+                </Tabs>
+            </>
         )
     }
 }
