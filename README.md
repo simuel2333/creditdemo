@@ -55,11 +55,5 @@ npm install -g truffle
 ```
 
 ### 启动
-
-```shell
-// 安装依赖
-yarn install
-// 启动项目
-npm start
-```
-
+改变启动相关的readme
+当前使用了 `git remote set-url origin [url]` 和 `git checkout -b modify-readme`两个命令
